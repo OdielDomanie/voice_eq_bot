@@ -140,7 +140,7 @@ async def measure(intr: dc.Interaction, duration: int = 10):
             adj_perc_str = f"{adj:.0%}"
             rel_loudness = loudnesses[vc_user] - TARGET_LUFS
             reply_lines.append(
-                f"`{vc_user.display_name}`: `{adj_perc_str}` (`{-rel_loudness:+3.1f} dB {'🔉' if rel_loudness > 0 else '🔊'}`)"
+                f"`{vc_user.display_name}`: `{adj_perc_str}`  (` {-rel_loudness:+3.1f} dB {'🔉' if rel_loudness > 0 else '🔊'}`)"
             )
 
     # Sort names alphabetically, as it's how it appears on the Discord GUI.
@@ -149,4 +149,6 @@ async def measure(intr: dc.Interaction, duration: int = 10):
     if len(reply_lines) == 0:
         await intr.followup.send("No one talked.")
     else:
-        await intr.followup.send("Optimal volume settings:\n" + "\n".join(reply_lines))
+        await intr.followup.send(
+            "__Optimal volume settings:__\n\n" + "\n".join(reply_lines)
+        )
