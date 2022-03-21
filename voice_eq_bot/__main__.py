@@ -14,5 +14,5 @@ logger_clipper.addHandler(handler)
 
 
 if __name__ == "__main__":
-    
+
     client.run(token)

@@ -102,9 +102,7 @@ async def measure(intr: dc.Interaction, duration: int = 10):
         user_pcms: dict[dc.User | dc.Member, bytearray] = {}
         async for member, _, pcm in voice_receiver(duration):
 
-            if isinstance(
-                member, dc.Object
-            ):  # If the user could not be got, skip.
+            if isinstance(member, dc.Object):  # If the user could not be got, skip.
                 continue
 
             user_pcms.setdefault(member, bytearray()).extend(pcm)
