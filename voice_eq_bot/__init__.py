@@ -77,6 +77,9 @@ async def measure(intr: dc.Interaction, duration: int = 10):
     """
     # TODO: Check if the bot has the required permissions.
 
+    if not intr.guild:
+        return
+
     duration = min(duration, 30)
 
     try:
@@ -85,6 +88,13 @@ async def measure(intr: dc.Interaction, duration: int = 10):
     except (AttributeError, AssertionError):
         await intr.response.send_message(
             "You need to be in a voice channel", ephemeral=True
+        )
+        return
+
+    permissions = voice_chn.permissions_for(intr.guild.me)
+    if not permissions.connect:
+        await intr.response.send_message(
+            "The bot doesn't have permission to join the voice channel.", ephemeral=True
         )
         return
 
