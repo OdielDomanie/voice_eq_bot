@@ -26,7 +26,7 @@ dotenv.load_dotenv(".env")
 test_guild_id = os.getenv("TEST_GUILD")
 test_guild: None | dc.Object = test_guild_id and dc.Object(test_guild_id)  # type: ignore
 
-logger = logging.getLogger("voice_eq_bot")
+logger = logging.getLogger("discord.voice_eq_bot")
 
 intents = dc.Intents()
 intents.voice_states = True
