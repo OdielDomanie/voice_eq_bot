@@ -1,6 +1,7 @@
 """Discord bot that recommends a percentage volume for each user in a voice chat."""
 
 import asyncio
+from dataclasses import dataclass
 import logging
 import os
 import dotenv
@@ -15,10 +16,7 @@ TARGET_LUFS = -28
 
 
 # Priveleged intent.
-# When turned off, the bot will only know if a user is in a voice channel if they have
-# changed their voice channel after the bot has logged in (not tested if the bot gets
-# this info when it first joins a guild.)
-MEMBERS_INTENT = True
+MEMBERS_INTENT = False
 
 
 # For testing the bot on a single Guild. None to make the slash command upload global.
@@ -68,6 +66,13 @@ async def help(intr: dc.Interaction):
     await intr.response.send_message(help_str)
 
 
+@dataclass
+class MemberPCM:
+    "Contains User/Member/Object and PCM"
+    member: dc.User | dc.Member | dc.Object
+    pcm: bytearray
+
+
 @tree.command(guild=test_guild)
 async def measure(intr: dc.Interaction, duration: int = 10):
     """Join the voice channel to measure each member's voice level,
@@ -107,19 +112,19 @@ async def measure(intr: dc.Interaction, duration: int = 10):
         )
         await resp_task
 
-        user_pcms: dict[dc.User | dc.Member, bytearray] = {}
+        user_pcms: dict[int, MemberPCM] = {}
         async for member, _, pcm in voice_receiver(duration):
 
-            if isinstance(member, dc.Object):  # If the user could not be got, skip.
-                continue
-
-            user_pcms.setdefault(member, bytearray()).extend(pcm)
+            member_pcm = user_pcms.setdefault(member.id, MemberPCM(member, bytearray()))
+            member_pcm.member = member
+            member_pcm.pcm.extend(pcm)
 
     loudnesses = {
-        user: loudness(
-            float_to_array(pcm, voice_receiver.channels), voice_receiver.sampling_rate
+        m_pcm.member: loudness(
+            float_to_array(m_pcm.pcm, voice_receiver.channels),
+            voice_receiver.sampling_rate,
         )
-        for user, pcm in user_pcms.items()
+        for m_pcm in user_pcms.values()
     }
     adjustments = {
         user: db_to_dc_percent(TARGET_LUFS - loud) for user, loud in loudnesses.items()
@@ -137,8 +142,18 @@ async def measure(intr: dc.Interaction, duration: int = 10):
         else:
             adj_perc_str = f"{adj:.0%}"
             rel_loudness = loudnesses[vc_user] - TARGET_LUFS
+
+            if isinstance(vc_user, dc.Object):
+                try:
+                    member = await intr.guild.fetch_member(vc_user.id)
+                except (dc.NotFound, dc.HTTPException):
+                    continue
+                name = member.display_name
+            else:
+                name = vc_user.display_name
+
             reply_lines.append(
-                f"`{vc_user.display_name}`: `{adj_perc_str}`  (` {-rel_loudness:+3.1f} dB {'🔉' if rel_loudness > 0 else '🔊'}`)"
+                f"`{name}`: `{adj_perc_str}`  (` {-rel_loudness:+3.1f} dB {'🔉' if rel_loudness > 0 else '🔊'}`)"
             )
 
     # Sort names alphabetically, as it's how it appears on the Discord GUI.
