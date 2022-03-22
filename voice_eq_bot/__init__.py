@@ -94,6 +94,10 @@ async def measure(intr: dc.Interaction, duration: int = 10):
         )
         return
 
+    if intr.guild.voice_client:
+        await intr.response.send_message("Already measuring.", ephemeral=True)
+        return
+
     permissions = voice_chn.permissions_for(intr.guild.me)
     if not permissions.connect:
         await intr.response.send_message(
