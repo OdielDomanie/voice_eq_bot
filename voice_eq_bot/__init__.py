@@ -46,15 +46,9 @@ async def on_ready():
     await tree.sync(guild=test_guild)
 
 
-info_group = ac.Group(
-    name="measure_info",
-    description="Help and settings for the voice measurement",
-    guild_ids=test_guild and [test_guild.id],
-)
-
-
-@info_group.command()
+@tree.command()
 async def help(intr: dc.Interaction):
+    "Show help."
     help_str = (
         "Use `/measure` to have the bot join your current voice channel,"
         " and measure everyone's voice loudness."
@@ -65,9 +59,6 @@ async def help(intr: dc.Interaction):
         " (You can ignore your own percentage.)"
     )
     await intr.response.send_message(help_str)
-
-
-tree.add_command(info_group)
 
 
 @tree.command(guild=test_guild)
