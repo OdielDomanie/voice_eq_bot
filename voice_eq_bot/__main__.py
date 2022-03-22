@@ -1,5 +1,6 @@
 import logging
 import os
+from . import signal_handler
 from . import client
 
 
