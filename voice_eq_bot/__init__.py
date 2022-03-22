@@ -32,7 +32,14 @@ intents = dc.Intents()
 intents.voice_states = True
 intents.guilds = True
 intents.members = MEMBERS_INTENT
-client = dc.Client(intents=intents)
+
+
+status = dc.Activity(
+    name="/measure",
+    type=dc.ActivityType.listening,
+)
+
+client = dc.Client(intents=intents, activity=status)
 
 
 tree = ac.CommandTree(client)
