@@ -5,7 +5,9 @@ from . import client
 
 
 token = os.getenv("DISCORD_TOKEN")
-assert token
+if not token:
+    print("DISCORD_TOKEN env var is not provided.")
+    exit()
 
 
 handler = logging.StreamHandler()
