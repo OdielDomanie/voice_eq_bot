@@ -50,15 +50,25 @@ async def on_ready():
     # Sync the application command with Discord.
     await tree.sync(guild=test_guild)
 
+    logger.info(f"""Joined guild: ({
+        [(guild.approximate_member_count or guild.member_count, guild.id) for guild in client.guilds]
+    })""")
+
+
+@client.event
+async def on_guild_join(guild: dc.Guild):
+    logger.info(f"Joined guild: ({guild.approximate_member_count or guild.member_count, guild.id})")
+
 
 @tree.command()
 async def help(intr: dc.Interaction):
     "Show help."
+    logger.info(f"Invoking /help at {intr.guild_id}")
     help_str = (
         "Use `/measure` to have the bot join your current voice channel,"
         " and measure everyone's voice loudness."
         " While measuring, everyone should talk at their usual loudness."
-        " (Talking at the same is ok.)\n"
+        " (Talking at the same time is ok.)\n"
         "After that, bot recommends percentages that you should set everyone else's"
         " volume at."
         " (You can ignore your own percentage.)"
@@ -80,6 +90,8 @@ async def measure(intr: dc.Interaction, duration: int = 10):
     """
     # TODO: Check if the bot has the required permissions.
 
+    logger.info(f"Invoking /measure {duration} at {intr.guild_id}")
+
     if not intr.guild:
         return
 
@@ -92,10 +104,12 @@ async def measure(intr: dc.Interaction, duration: int = 10):
         await intr.response.send_message(
             "You need to be in a voice channel", ephemeral=True
         )
+        logger.info(f"User error: Not in a voice channel at {intr.guild_id}")
         return
 
     if intr.guild.voice_client:
         await intr.response.send_message("Already measuring.", ephemeral=True)
+        logger.info(f"User error: Already measuring at {intr.guild_id}")
         return
 
     permissions = voice_chn.permissions_for(intr.guild.me)
@@ -103,6 +117,7 @@ async def measure(intr: dc.Interaction, duration: int = 10):
         await intr.response.send_message(
             "The bot doesn't have permission to join the voice channel.", ephemeral=True
         )
+        logger.info(f"User error: No permission to connect at {intr.guild_id}")
         return
 
     async with await voice_chn.connect(timeout=5, cls=dc.VoiceClient) as voice_client:
@@ -169,3 +184,5 @@ async def measure(intr: dc.Interaction, duration: int = 10):
         await intr.followup.send(
             "__Optimal volume settings:__\n\n" + "\n".join(reply_lines)
         )
+
+    logger.info(f"Measurement results at {intr.guild_id} ({voice_chn.members}): {list(adjustments.values())}")
