@@ -185,4 +185,4 @@ async def measure(intr: dc.Interaction, duration: int = 10):
             "__Optimal volume settings:__\n\n" + "\n".join(reply_lines)
         )
 
-    logger.info(f"Measurement results at {intr.guild_id} ({voice_chn.members}): {list(adjustments.values())}")
+    logger.info(f"Measurement results at {intr.guild_id} ({len(voice_chn.members)}): {list(adjustments.values())}")
