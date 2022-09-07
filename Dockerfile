@@ -1,8 +1,6 @@
 FROM python:3.10-slim-bullseye
 
-RUN apt-get update
-RUN apt-get install -y libopus0
-RUN apt-get install -y git
+RUN apt-get update; apt-get install -y libopus0 git
 
 WORKDIR /app
 COPY setup.cfg setup.cfg
